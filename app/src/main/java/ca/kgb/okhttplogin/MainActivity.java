@@ -1,10 +1,13 @@
 package ca.kgb.okhttplogin;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -22,15 +25,16 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String STUDENT_BUNDLE_KEY = "STUDENT_BUNDLE_KEY";
     private String mUrl = "http://www.mocky.io/v2/57a4dfb40f0000821dc9a3b8";
-    private EditText user;
-    private EditText password;
+    private EditText mEditTextUser;
+    private EditText mEditTextPassword;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        user = (EditText)findViewById(R.id.user);
-        password = (EditText)findViewById(R.id.password);
+        mEditTextUser = (EditText)findViewById(R.id.user);
+        mEditTextPassword = (EditText)findViewById(R.id.password);
     }
 
     public void doMagic(View view) {
@@ -38,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
         Request request = new Request.Builder()
                 .url(mUrl)
                 .build();
-
+        final String user = mEditTextUser.getText().toString();
+        final String password = mEditTextPassword.getText().toString();
+        final View doMagicView = view;
         client.newCall(request).enqueue(new Callback() {
             public static final String TAG = "EnqueueRequest";
 
@@ -55,7 +61,39 @@ public class MainActivity extends AppCompatActivity {
                 }.getType();
 
                 ArrayList<Student> students = gson.fromJson(json, listType);
+                boolean authenticated = false;
+                for (int i=0; i<students.size(); i++){
+                    if(password.equals(students.get(i).getPassword()) &&
+                            user.equals(students.get(i).getName()) ) {
+                        authenticated = true;
+                        showWelcome(students.get(i));
+                        break;
+                    }
+                }
+                if(!authenticated)
+                    doToast();
+
+
                 Log.d(TAG, "onResponse: " + students.toString());
+            }
+        });
+    }
+
+    private void showWelcome(Student student) {
+        Intent intent = new Intent(this, Details.class);
+        intent.putExtra(STUDENT_BUNDLE_KEY, student);
+        startActivity(intent);
+    }
+
+
+    private void doToast() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(MainActivity.this,
+                        "Invalide user name or password!",
+                        Toast.LENGTH_LONG).show();
+
             }
         });
     }

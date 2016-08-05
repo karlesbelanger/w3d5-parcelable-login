@@ -1,9 +1,12 @@
 package ca.kgb.okhttplogin;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by admin on 8/5/2016.
  */
-public class Student {
+public class Student implements Parcelable {
     private String name;
     private int age;
     private double grade;
@@ -50,4 +53,37 @@ public class Student {
                 ", password='" + password + '\'' +
                 '}';
     }
+
+    protected Student(Parcel in) {
+        name = in.readString();
+        age = in.readInt();
+        grade = in.readDouble();
+        password = in.readString();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeInt(age);
+        dest.writeDouble(grade);
+        dest.writeString(password);
+    }
+
+    @SuppressWarnings("unused")
+    public static final Parcelable.Creator<Student> CREATOR = new Parcelable.Creator<Student>() {
+        @Override
+        public Student createFromParcel(Parcel in) {
+            return new Student(in);
+        }
+
+        @Override
+        public Student[] newArray(int size) {
+            return new Student[size];
+        }
+    };
 }
